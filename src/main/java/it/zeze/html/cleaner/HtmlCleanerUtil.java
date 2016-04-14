@@ -55,6 +55,20 @@ public class HtmlCleanerUtil {
 		}
 		return contains;
 	}
+	
+	public static String getAttributeValueFromFile(String filePath, String attributeName, String attributeValue, String attributeToRead) throws IOException, XPatherException{
+		String toReturn = null;
+		List<TagNode> listOfElementsToReturn = getListOfElementsByAttributeFromFile(filePath, attributeName, attributeValue);
+		if (listOfElementsToReturn != null && !listOfElementsToReturn.isEmpty()){
+			if (attributeToRead != null){
+				toReturn = listOfElementsToReturn.get(0).getAttributeByName(attributeToRead);
+			} else {
+				// Leggo il valore del tag
+				toReturn = listOfElementsToReturn.get(0).getText().toString();
+			}
+		}
+		return toReturn;
+	}
 
 	/**
 	 * @param args
@@ -63,7 +77,7 @@ public class HtmlCleanerUtil {
 		leggiNuovaGazzetta();
 	}
 
-	public static void leggiNuovaGazzetta() {
+	private static void leggiNuovaGazzetta() {
 		try {
 			String filePath = "/home/enrico/Scrivania/ZeZe/fantaFormazione/new_html/probFormazioniGS2.html";
 
