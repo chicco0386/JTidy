@@ -1,9 +1,7 @@
 package it.zeze.html.cleaner;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -102,6 +100,13 @@ public class HtmlCleanerUtil {
 		return listOfElementsToReturn;
 	}
 
+	public static List<TagNode> getListOfElementsByXPathSpecialFromFile(String filePath, String xPathExpression) throws IOException, XPatherException, XPathExpressionException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+		List<TagNode> listOfElementsToReturn = new ArrayList<TagNode>();
+		TagNode nodeToTraverse = cleaner.clean(new File(filePath));
+		listOfElementsToReturn = getListOfElementsByXPathSpecialFromElement(nodeToTraverse, xPathExpression);
+		return listOfElementsToReturn;
+	}
+
 	public static boolean nodeContainsAttribute(TagNode node, String attrbuteName, String attributeValue) {
 		boolean contains = false;
 		Map<String, String> mapAttributes = node.getAttributes();
@@ -134,218 +139,15 @@ public class HtmlCleanerUtil {
 
 	/**
 	 * @param args
+	 * @throws TransformerException
+	 * @throws TransformerFactoryConfigurationError
+	 * @throws ParserConfigurationException
+	 * @throws XPatherException
+	 * @throws IOException
+	 * @throws XPathExpressionException
 	 */
-	public static void main(String[] args) {
-		// leggiNuovaGazzetta();
-		unmarshallAndSaveSingleHtmlFileNEW(new File("/home/enrico/Scrivania/ZeZe/fantaFormazione/new_html/probFormazioniFG33.html"));
-	}
-
-	private static void unmarshallAndSaveSingleHtmlFileNEW(File fileToElaborate) {
-		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, entrato per elaborare il file [" + fileToElaborate.getAbsolutePath() + "]");
-		try {
-			List<TagNode> listRootTagSquadre = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "id", "sqtab");
-			if (listRootTagSquadre != null && !listRootTagSquadre.isEmpty()) {
-				TagNode rootTag = listRootTagSquadre.get(0);
-				List<TagNode> listPartite = getListOfElementsByXPathSpecialFromElement(rootTag, "//div[contains(@class,'tab-pane')]");
-				// TagNode currentPartita = null;
-				for (int i = 0; i < listPartite.size(); i++) {
-					TagNode currentPartita = null;
-					currentPartita = listPartite.get(i);
-					System.out.println("##################################");
-					unmarshallAndSaveSingleHtmlFileNEWPartita(currentPartita);
-				}
-			} else {
-				System.out.println("Nessun rootTag contenente le partite!");
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (XPatherException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, uscito");
-	}
-
-	private static void unmarshallAndSaveSingleHtmlFileNEWPartita(TagNode nodePartita) throws TransformerFactoryConfigurationError, Exception {
-		try {
-			if (nodePartita != null) {
-				List<TagNode> listSquadreHome = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "homeTeam");
-				String nomeSquadra = listSquadreHome.get(0).getElementsByName("h3", true)[0].getText().toString();
-				System.out.println("Squadra CASA [" + nomeSquadra + "]");
-				// Recupero lista giocatori
-				List<TagNode> listaGiocatori = getListOfElementsByXPathSpecialFromElement(nodePartita, "//div[contains(@class,'probbar')]");
-				TagNode titolariCasa = listaGiocatori.get(0);
-				printTagNode(titolariCasa, new FileWriter(new File("/home/enrico/Scrivania/Casa_"+nomeSquadra+".html")));
-				List<TagNode> listTitolariCasa = unmarshallAndSaveGiocatoriCasaNEW(titolariCasa);
-				System.out.println("Giocatori TITOLARI CASA [" + listTitolariCasa.size() + "]");
-				String nome = null;
-				for (TagNode current : listTitolariCasa) {
-					nome = getNomeGiocatore(current);
-					System.out.println(nome + " - " + getRuoloGiocatore(current));
-				}
-				TagNode panchinaCasa = listaGiocatori.get(2);
-				List<TagNode> listPanchinaCasa = unmarshallAndSaveGiocatoriCasaNEW(panchinaCasa);
-				System.out.println("Giocatori PANCHINA CASA [" + listPanchinaCasa.size() + "]");
-				for (TagNode current : listPanchinaCasa) {
-					nome = getNomeGiocatore(current);
-					System.out.println(nome + " - " + getRuoloGiocatore(current));
-				}
-
-				List<TagNode> listSquadreFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "awayTeam");
-				nomeSquadra = listSquadreFuori.get(0).getElementsByName("h3", true)[0].getText().toString();
-				System.out.println("Squadra FUORI [" + nomeSquadra + "]");
-				TagNode titolariFuori = listaGiocatori.get(1);
-				List<TagNode> listTitolariFuori = unmarshallAndSaveGiocatoriFuoriNEW(titolariFuori);
-				System.out.println("Giocatori TITOLARI FUORI [" + listTitolariFuori.size() + "]");
-				for (TagNode current : listTitolariFuori) {
-					nome = getNomeGiocatore(current);
-					System.out.println(nome + " - " + getRuoloGiocatore(current));
-				}
-				TagNode panchinaFuori = listaGiocatori.get(3);
-				List<TagNode> listPanchinaFuori = unmarshallAndSaveGiocatoriFuoriNEW(panchinaFuori);
-				System.out.println("Giocatori PANCHINA FUORI [" + listPanchinaFuori.size() + "]");
-				for (TagNode current : listPanchinaFuori) {
-					nome = getNomeGiocatore(current);
-					System.out.println(nome + " - " + getRuoloGiocatore(current));
-				}
-
-			} else {
-				System.out.println("Nessun nodePartita!");
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (XPatherException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private static List<TagNode> unmarshallAndSaveGiocatoriCasaNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
-		List<TagNode> listGiocatoriCasa = getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup lf");
-		return listGiocatoriCasa;
-	}
-
-	private static List<TagNode> unmarshallAndSaveGiocatoriFuoriNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
-		List<TagNode> listGiocatoriFuori = getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup rt");
-		return listGiocatoriFuori;
-	}
-
-	private static String getRuoloGiocatore(TagNode nodeGiocatore) throws XPathExpressionException, IOException, XPatherException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
-		String toReturn = null;
-		List<TagNode> list = getListOfElementsByXPathSpecialFromElement(nodeGiocatore, "//span[contains(@class,'role')]");
-		if (list != null && !list.isEmpty()) {
-			TagNode node = list.get(0);
-			toReturn = node.getText().toString().trim();
-		}
-		return toReturn;
-	}
-
-	private static String getNomeGiocatore(TagNode nodeGiocatore) throws XPathExpressionException, IOException, XPatherException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
-		String toReturn = null;
-		List<TagNode> list = getListOfElementsByXPathSpecialFromElement(nodeGiocatore, "//div[contains(@class,'pname2')]/a");
-		if (list != null && !list.isEmpty()) {
-			TagNode node = list.get(0);
-			toReturn = node.getText().toString().trim();
-		}
-		return toReturn;
-	}
-
-	private static void leggiNuovaGazzetta() {
-		try {
-			String filePath = "/home/enrico/Scrivania/ZeZe/fantaFormazione/new_html/probFormazioniGS2.html";
-
-			List<TagNode> listPlayersInNode = HtmlCleanerUtil.getListOfElementsByXPathFromFile(filePath, "//div[@class='MXXX-central-articles-main-column']");
-			System.out.println(listPlayersInNode.size());
-
-			// Partite
-			List<TagNode> listPlayersNameInNodeToClean = HtmlCleanerUtil.getListOfElementsByXPathFromElement(listPlayersInNode.get(0), "//div[@class='probabiliFormazioni']/div");
-			List<TagNode> listPlayersNameInNode = new ArrayList<TagNode>();
-			for (TagNode currentNode : listPlayersNameInNodeToClean) {
-				if (nodeContainsAttribute(currentNode, "class", "matchFieldContainer")) {
-					listPlayersNameInNode.add(currentNode);
-				}
-			}
-			System.out.println(listPlayersNameInNode.size());
-			System.out.println("----------------------------------------------------");
-
-			// Nomi squadre
-			TagNode currentPartitaNode;
-			List<TagNode> currentPartita;
-			TagNode particaCasaNode;
-			TagNode particaFuoriCasaNode;
-			for (int i = 0; i < listPlayersNameInNode.size(); i++) {
-				currentPartitaNode = listPlayersNameInNode.get(i);
-				currentPartita = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPartitaNode, "//span[@class='teamName']/a");
-				particaCasaNode = currentPartita.get(0);
-				particaFuoriCasaNode = currentPartita.get(1);
-				System.out.println("> Partita [" + (i + 1) + "]");
-				System.out.println("-> Casa [" + particaCasaNode.getText() + "]");
-				// Giocatori Titolari
-				System.out.println("--> Titolari");
-				List<TagNode> listTitolari = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPartitaNode, "//li[@class='team-players-inner']");
-				List<TagNode> listPlayersCasaTit = HtmlCleanerUtil.getListOfElementsByXPathFromElement(listTitolari.get(0), "//li/span[@class='team-player']");
-				for (TagNode currentTag : listPlayersCasaTit) {
-					if (currentTag.getParent().getAttributeByName("class") == null) {
-						System.out.println(currentTag.getText());
-					}
-				}
-				// Giocatori Panchina
-				System.out.println("--> Panchina");
-				List<TagNode> listPanchina = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPartitaNode, "//div[@class='matchDetails']/div[@class='homeDetails']/p[1]");
-				String panchinaToSplit = listPanchina.get(0).getText().toString();
-				List<String> listGiocatoriPanchina = getGiocatoriPanchinaNew(panchinaToSplit);
-				for (String currentGiocPanchina : listGiocatoriPanchina) {
-					System.out.println(currentGiocPanchina);
-				}
-
-				System.out.println("-> Fuori casa [" + particaFuoriCasaNode.getText() + "]");
-				// Giocatori Titolari
-				System.out.println("--> Titolari");
-				listPlayersCasaTit = HtmlCleanerUtil.getListOfElementsByXPathFromElement(listTitolari.get(1), "//li/span[@class='team-player']");
-				for (TagNode currentTag : listPlayersCasaTit) {
-					if (currentTag.getParent().getAttributeByName("class") == null) {
-						System.out.println(currentTag.getText());
-					}
-				}
-				// Giocatori Panchina
-				System.out.println("--> Panchina");
-				listPanchina = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPartitaNode, "//div[@class='matchDetails']/div[@class='awayDetails']/p[1]");
-				panchinaToSplit = listPanchina.get(0).getText().toString();
-				listGiocatoriPanchina = getGiocatoriPanchinaNew(panchinaToSplit);
-				for (String currentGiocPanchina : listGiocatoriPanchina) {
-					System.out.println(currentGiocPanchina);
-				}
-			}
-
-		} catch (XPatherException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private static List<String> getGiocatoriPanchinaNew(String stringPanchinaHTMLToSplit) {
-		List<String> toReturn = new ArrayList<String>();
-		System.out.println(stringPanchinaHTMLToSplit);
-		// Rimuovo Panchina:
-		stringPanchinaHTMLToSplit = stringPanchinaHTMLToSplit.replace("Panchina: ", "");
-		String[] arrayPanchina = stringPanchinaHTMLToSplit.split(",");
-		for (String currentPanchina : arrayPanchina) {
-			currentPanchina = currentPanchina.trim().replaceAll("\\A(\\d*){3}\\s*", "");
-			currentPanchina = currentPanchina.replace("-", "");
-			currentPanchina = currentPanchina.replace("?", "'");
-			currentPanchina = currentPanchina.trim().replaceAll("\\A(.){1}", "");
-			toReturn.add(currentPanchina.trim());
-		}
-		return toReturn;
-
+	public static void main(String[] args) throws XPathExpressionException, IOException, XPatherException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+		
 	}
 
 }
