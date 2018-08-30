@@ -1,12 +1,10 @@
 package it.zeze.html.cleaner;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang.StringUtils;
+import org.htmlcleaner.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -19,15 +17,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import org.htmlcleaner.CleanerProperties;
-import org.htmlcleaner.DomSerializer;
-import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.TagNode;
-import org.htmlcleaner.XPatherException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class HtmlCleanerUtil {
 
@@ -37,7 +33,11 @@ public class HtmlCleanerUtil {
 	public static List<TagNode> getListOfElementsByAttributeFromFile(String filePath, String attributeName, String attributeValue) throws IOException, XPatherException {
 		List<TagNode> listOfElementsToReturn = new ArrayList<TagNode>();
 		TagNode node = cleaner.clean(new File(filePath));
-		listOfElementsToReturn = node.getElementListByAttValue(attributeName, attributeValue, true, true);
+		if (StringUtils.isBlank(attributeValue)){
+			listOfElementsToReturn = node.getElementListHavingAttribute(attributeName, true);
+		} else {
+			listOfElementsToReturn = node.getElementListByAttValue(attributeName, attributeValue, true, true);
+		}
 		return listOfElementsToReturn;
 	}
 
